@@ -460,18 +460,11 @@
     //   // "tags": ["apps", "web"]
     // },
     // 
-    // {
-    //   "packageName": "my-controls",
-    //   "projectFolder": "libraries/my-controls",
-    //   "reviewCategory": "production",
-    //   "tags": ["libraries", "web"]
-    // },
-    // 
-    // {
-    //   "packageName": "my-toolchain",
-    //   "projectFolder": "tools/my-toolchain",
-    //   "reviewCategory": "tools",
-    //   "tags": ["tools"]
-    // }
+    {
+      "packageName": "@subsquid-processor-tools/typeorm-store-with-cache",
+      "projectFolder": "stores/typeorm-store-with-cache",
+      "shouldPublish": true,
+      "versionPolicyName": "npm"
+    }
   ]
 }

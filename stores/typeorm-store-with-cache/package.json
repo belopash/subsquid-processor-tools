@@ -1,0 +1,43 @@
+{
+  "name": "@subsquid-processor-tools/typeorm-store-with-cache",
+  "version": "0.0.1",
+  "description": "Subsquid processor store with cache",
+  "license": "GPL-3.0-or-later",
+  "repository": "https://github.com/mckrava/subsquid-processor-tools.git",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "lib",
+    "src",
+    "!src/store-with-cache/test"
+  ],
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "rm -rf lib && tsc && copyfiles -f src/test/*.graphql lib/store-with-cache/test/",
+    "test:store": "make up && sleep 1 && make test-store && make down || (make down && exit 1)"
+  },
+  "dependencies": {
+    "@subsquid/openreader": "^3.1.0",
+    "@subsquid/util-internal": "^0.0.1",
+    "assert": "^2.0.0",
+    "dotenv": "^16.0.3",
+    "typeorm": "^0.3.6"
+  },
+  "peerDependencies": {
+    "@subsquid/substrate-processor": "^1.9.0",
+    "@subsquid/typeorm-store": "^0.1.3"
+  },
+  "devDependencies": {
+    "@types/mocha": "^9.1.1",
+    "@types/node": "^16.11.41",
+    "@types/pg": "^8.6.5",
+    "copyfiles": "^2.4.1",
+    "expect": "^27.5.1",
+    "fast-check": "^2.25.0",
+    "mocha": "^9.2.2",
+    "pg": "^8.7.3",
+    "prettier": "^2.7.1",
+    "typescript": "~4.7.4"
+  }
+}
