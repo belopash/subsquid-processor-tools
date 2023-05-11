@@ -39,11 +39,11 @@ export class StoreWithCache {
             assert(!_insertList.has(entity.id))
             assert(!_upsertList.has(entity.id))
 
-            const cached = _cacheMap.get(entity.id)
+            let cached = _cacheMap.get(entity.id)
             assert(cached == null)
 
-            _insertList.set(entity.id, entity)
-            _cacheMap.set(entity.id, entity)
+            cached = await this.cache(entity)
+            _insertList.set(cached.id, cached)
         }
     }
 
@@ -56,13 +56,11 @@ export class StoreWithCache {
         const entityName = entities[0].constructor.name
         const _insertList = this.getInsertList(entityName)
         const _upsertList = this.getUpsertList(entityName)
-        const _cacheMap = this.getCacheMap(entityName)
         for (const entity of entities) {
-            if (!_insertList.has(entity.id)) {
-                _upsertList.set(entity.id, entity)
+            const cached = await this.cache(entity)
+            if (!_insertList.has(cached.id)) {
+                _upsertList.set(cached.id, cached)
             }
-
-            _cacheMap.set(entity.id, entity)
         }
     }
 
@@ -234,9 +232,10 @@ export class StoreWithCache {
                 const propertyName = column.propertyName
                 if (column.relationMetadata) {
                     const relationMetadata = column.relationMetadata
-                    if (entity[propertyName] != null) {
+                    if (propertyName in entity[propertyName]) {
                         assert(!relationMetadata.isOneToMany, `OneToMany relations can't be cached`)
-                        cached[propertyName] = await this.cache(entity[propertyName])
+                        cached[propertyName] =
+                            entity[propertyName] == null ? undefined : await this.cache(entity[propertyName])
                     }
                 } else {
                     cached[propertyName] = entity[propertyName]
