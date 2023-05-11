@@ -32,13 +32,10 @@ export class StoreWithCache {
         if (entities.length == 0) return
 
         const entityName = entities[0].constructor.name
-        const _deferData = this.getDeferData(entityName)
         const _insertList = this.getInsertList(entityName)
         const _upsertList = this.getUpsertList(entityName)
         const _cacheMap = this.getCacheMap(entityName)
         for (const entity of entities) {
-            _deferData.ids.delete(entity.id)
-
             assert(!_insertList.has(entity.id))
             assert(!_upsertList.has(entity.id))
 
@@ -57,13 +54,10 @@ export class StoreWithCache {
         if (entities.length == 0) return
 
         const entityName = entities[0].constructor.name
-        const _deferData = this.getDeferData(entityName)
         const _insertList = this.getInsertList(entityName)
         const _upsertList = this.getUpsertList(entityName)
         const _cacheMap = this.getCacheMap(entityName)
         for (const entity of entities) {
-            _deferData.ids.delete(entity.id)
-
             if (!_insertList.has(entity.id)) {
                 _upsertList.set(entity.id, entity)
             }
@@ -176,7 +170,7 @@ export class StoreWithCache {
         entityClass: EntityClass<E>,
         id: string,
         relations?: FindManyOptions<E>['relations']
-    ): DeferValue<E> {
+    ): DeferredValue<E> {
         this.classes.set(entityClass.name, entityClass)
 
         const _deferredList = this.getDeferData(entityClass.name)
@@ -184,7 +178,7 @@ export class StoreWithCache {
         _deferredList.relations =
             relations != null ? mergeRelataions(_deferredList.relations, relations) : _deferredList.relations
 
-        return new DeferValue(this, entityClass, id)
+        return new DeferredValue(this, entityClass, id)
     }
 
     async flush<E extends Entity>(entityClass?: EntityClass<E>): Promise<void> {
@@ -213,11 +207,10 @@ export class StoreWithCache {
         const _deferData = this.getDeferData<E>(entityClass.name)
         if (_deferData.ids.size === 0) return
 
-        await this.find<any>(entityClass, {where: {id: In([..._deferData.ids]), relations: _deferData.relations}})
+        await this.find<any>(entityClass, {where: {id: In([..._deferData.ids])}, relations: _deferData.relations})
 
         const _cacheMap = this.getCacheMap(entityClass.name)
         for (const id of _deferData.ids) {
-            if (_cacheMap.has(id)) continue
             _cacheMap.set(id, null)
         }
 
@@ -233,7 +226,7 @@ export class StoreWithCache {
         const _deferData = this.getDeferData(entities[0].constructor.name)
         const _cacheMap = this.getCacheMap(entities[0].constructor.name)
         for (const entity of entities) {
-            const cached = _cacheMap.get(entity.id) || (entity.constructor() as Entity)
+            const cached = _cacheMap.get(entity.id) || (new entity.constructor.prototype.constructor() as Entity)
 
             const metadata = this.em.connection.entityMetadatasMap.get(entity.constructor)
             assert(metadata != null, `Missing metadata for ${entity.constructor.name}`)
@@ -250,6 +243,7 @@ export class StoreWithCache {
                 }
             }
 
+            _cacheMap.set(cached.id, cached)
             _deferData.ids.delete(entity.id)
         }
 
@@ -337,7 +331,7 @@ function mergeRelataions<E extends Entity>(
     return mergedObject
 }
 
-export class DeferValue<E extends Entity> {
+export class DeferredValue<E extends Entity> {
     constructor(private store: StoreWithCache, private entityClass: EntityClass<E>, private id: string) {}
 
     @def
